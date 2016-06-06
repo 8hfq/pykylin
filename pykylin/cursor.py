@@ -36,7 +36,7 @@ class Cursor(object):
 
         column_metas = resp['columnMetas']
         self.description = [
-            [c['label'], c['columnTypeName'],
+            [c['label'].lower(), c['columnTypeName'],
              c['displaySize'], 0,
              c['precision'], c['scale'], c['isNullable']]
             for c in column_metas
