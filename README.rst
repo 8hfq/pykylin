@@ -7,14 +7,14 @@ Installation
 from source::
 
     $ pip install -r ./requirements.txt
-	$ cd pykylin
+    $ cd pykylin
     $ pip install .
 
 
 More info
 ---------
 
- * forked from https://github.com/wxiang7/pykylin Thanks orgin author: @wxiang7
+ * forked from https://github.com/wxiang7/pykylin Thanks origin author: @wxiang7
 
 
 Usage
