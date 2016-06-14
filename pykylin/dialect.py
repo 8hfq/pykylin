@@ -3,10 +3,11 @@ from __future__ import absolute_import
 from sqlalchemy import pool
 from sqlalchemy.sql.compiler import *
 from sqlalchemy.engine import default
+
 from .types import KYLIN_TYPE_MAP
 
-class KylinCompiler(SQLCompiler):
 
+class KylinCompiler(SQLCompiler):
     def visit_label(self, label,
                     add_to_result_map=None,
                     within_label_clause=False,
@@ -36,7 +37,7 @@ class KylinCompiler(SQLCompiler):
                 add_to_result_map(
                     labelname,
                     label.name,
-                    (label, labelname, ) + label._alt_names,
+                    (label, labelname,) + label._alt_names,
                     label.type
                 )
 
@@ -158,22 +159,23 @@ class KylinDialect(default.DefaultDialect):
         return [self._map_column_type(c) for c in cols]
 
     def _map_column_type(self, column):
-        tpe_NAME = column['type_NAME']
-        if tpe_NAME.startswith('VARCHAR'):
+        type_NAME = column['type_NAME']
+        if type_NAME.startswith('VARCHAR'):
             tpe_size = column['column_SIZE']
             args = (tpe_size,)
             tpe = KYLIN_TYPE_MAP['VARCHAR']
-        elif tpe_NAME == 'DECIMAL':
+        elif type_NAME.startswith('DECIMAL'):
             digit_size = column['decimal_DIGITS']
-            args = (digit_size,)
+            octet_len = column['char_OCTET_LENGTH']
+            args = (octet_len, digit_size,)
             tpe = KYLIN_TYPE_MAP['DECIMAL']
         else:
             args = ()
-            tpe = KYLIN_TYPE_MAP[tpe_NAME]
-        column_tpe = tpe(*args)
+            tpe = KYLIN_TYPE_MAP[type_NAME]
+        column_type = tpe(*args)
         return {
             'name': column['column_NAME'].lower(),
-            'type': column_tpe
+            'type': column_type
         }
 
     def get_foreign_keys(self, connection, table_name, schema=None, **kw):
@@ -191,4 +193,3 @@ class KylinDialect(default.DefaultDialect):
     def get_unique_constraints(
             self, connection, table_name, schema=None, **kw):
         return []
-

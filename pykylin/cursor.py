@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import re
 
 from dateutil import parser
+from decimal import Decimal
 
 from .errors import Error
 from .log import logger
@@ -104,6 +105,8 @@ class Cursor(object):
                 val = float(val)
             elif tpe == 'BOOLEAN':
                 val = (val == 'true')
+            elif tpe.startswith('DECIMAL'):
+                val = Decimal(val)
             result[i] = val
         return result
 
