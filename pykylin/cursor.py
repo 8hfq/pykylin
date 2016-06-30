@@ -100,13 +100,13 @@ class Cursor(object):
             if tpe == 'DATE':
                 val = parser.parse(val)
             elif tpe == 'BIGINT' or tpe == 'INT' or tpe == 'TINYINT':
-                val = int(val)
+                val = int(val) if val else 0
             elif tpe == 'DOUBLE' or tpe == 'FLOAT':
-                val = float(val)
+                val = float(val) if val else 0.0
             elif tpe == 'BOOLEAN':
                 val = (val == 'true')
             elif tpe.startswith('DECIMAL'):
-                val = Decimal(val)
+                val = Decimal(val) if val else Decimal(0)
             result[i] = val
         return result
 
