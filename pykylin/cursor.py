@@ -1,14 +1,14 @@
 from __future__ import absolute_import
 
 import re
+from decimal import Decimal
 
 from dateutil import parser
-from decimal import Decimal
 
 from .errors import Error
 from .log import logger
 
-rep_sql_regx = re.compile("('\$\|.*\|\$')")
+rep_sql_regx = re.compile("('\$\|.*?\|\$')")
 limit_sql_regx = re.compile("(limit\s*[0-9]{1,6})")
 join_on_sql_regx = re.compile("join.*on.*\s*where", re.DOTALL)
 
@@ -35,7 +35,7 @@ class Cursor(object):
         rep_sql_list = rep_sql_regx.findall(sql_str)
         if not rep_sql_list:
             return sql_str
-        transformed_sql = ''
+        transformed_sql = None
         rep_sql_dict = dict()
         rep_sql_set = set()
         for rep_sql in rep_sql_list:
@@ -44,7 +44,10 @@ class Cursor(object):
 
         # step 1, replace all the const str to data name
         for rep_sql, rep_value in rep_sql_dict.items():
-            transformed_sql = sql_str.replace(rep_sql, rep_value)
+            if transformed_sql:
+                transformed_sql = transformed_sql.replace(rep_sql, rep_value)
+            else:
+                transformed_sql = sql_str.replace(rep_sql, rep_value)
 
         # step 2, replace limit number from sub-sql
         limit_sql_list = limit_sql_regx.findall(transformed_sql)
@@ -83,7 +86,7 @@ class Cursor(object):
              c['displaySize'], 0,
              c['precision'], c['scale'], c['isNullable']]
             for c in column_metas
-        ]
+            ]
 
         self.results = [self._type_mapped(r) for r in resp['results']]
         self.rowcount = len(self.results)
