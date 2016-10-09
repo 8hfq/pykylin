@@ -9,8 +9,8 @@ from .errors import Error
 from .log import logger
 
 rep_sql_regx = re.compile("('\$\|.*?\|\$')")
-limit_sql_regx = re.compile("(limit\s*[0-9]{1,6})")
-join_on_sql_regx = re.compile("join.*on.*\s*where", re.DOTALL)
+limit_sql_regx = re.compile("(\sLIMIT\s*[0-9]{1,6})")
+join_on_sql_regx = re.compile("JOIN.*\sON.*\s*WHERE", flags=re.DOTALL)
 
 
 class Cursor(object):
@@ -31,7 +31,7 @@ class Cursor(object):
 
     @staticmethod
     def trans_sql_for_kylin(sql_str):
-        sql_str = sql_str.lower()
+        sql_str = sql_str
         rep_sql_list = rep_sql_regx.findall(sql_str)
         if not rep_sql_list:
             return sql_str
@@ -57,11 +57,11 @@ class Cursor(object):
         # step 3, delete 'join on' sql
         join_on_sql = join_on_sql_regx.findall(transformed_sql)
         if join_on_sql:
-            transformed_sql = transformed_sql.replace(join_on_sql[0], 'where')
+            transformed_sql = transformed_sql.replace(join_on_sql[0], 'WHERE')
 
         # step 4, replace 'where' with rep_sql(inner join)
         for rep_sql in rep_sql_set:
-            transformed_sql = transformed_sql.replace('where', '%s %s' % (rep_sql, 'where'))
+            transformed_sql = transformed_sql.replace('WHERE', '%s %s' % (rep_sql, 'WHERE'))
 
         return transformed_sql
 
@@ -71,13 +71,15 @@ class Cursor(object):
         else:
             sql = operation
         data = {
-            'sql': self.trans_sql_for_kylin(sql.lower()),
+            'sql': self.trans_sql_for_kylin(sql),
             'offset': offset,
             'limit': limit or self.connection.limit,
             'acceptPartial': acceptPartial,
             'project': self.connection.project
         }
-        logger.debug("QUERY KYLIN: %s" % sql)
+        logger.debug("RAW SQL=%s" % sql)
+        logger.debug("Trans SQL=%s" % data.get('sql'))
+
         resp = self.connection.proxy.post('query', json=data)
 
         column_metas = resp['columnMetas']
