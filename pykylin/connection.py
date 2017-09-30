@@ -43,5 +43,12 @@ class Connection(object):
         return Cursor(self)
 
 
+    def list_schemas(self):   
+        route = 'tables_and_columns' 
+        params = {'project': self.project} 
+        tables = self.proxy.get(route, params=params) 
+        return [t['table_SCHEM'] for t in tables] 
+
+
 def connect(username='', password='', endpoint='', project='', **kwargs):
     return Connection(username, password, endpoint, project, **kwargs)
